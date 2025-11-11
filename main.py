@@ -10,11 +10,14 @@ DATA_FILE = "scammers.csv"
 # -----------------------------
 def load_data():
     if os.path.exists(DATA_FILE):
-        return pd.read_csv(DATA_FILE)
+        df = pd.read_csv(DATA_FILE)
     else:
         df = pd.DataFrame(columns=["이름", "전화번호", "계좌번호"])
         df.to_csv(DATA_FILE, index=False)
-        return df
+    # 문자열로 변환 (NaN → 빈 문자열)
+    for col in ["이름", "전화번호", "계좌번호"]:
+        df[col] = df[col].astype(str).fillna("")
+    return df
 
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
@@ -29,7 +32,6 @@ st.caption("더치트 + AI 대화 분석 + 사용자 제보 기능 (프로토타
 
 menu = st.sidebar.selectbox("메뉴 선택", ["사기꾼 조회", "대화 분석", "사기꾼 등록"])
 
-# 데이터 불러오기
 data = load_data()
 
 # -----------------------------
@@ -66,7 +68,6 @@ elif menu == "대화 분석":
         if not chat_text.strip():
             st.warning("대화 내용을 입력해주세요!")
         else:
-            # 나중에 OpenAI API로 교체 가능
             fake_score = random.randint(0, 100)
             if fake_score > 70:
                 st.error(f"⚠️ 사기 위험도 {fake_score}% — 매우 위험한 패턴이 감지되었습니다.")
@@ -93,3 +94,4 @@ elif menu == "사기꾼 등록":
             updated = pd.concat([data, new_data], ignore_index=True)
             save_data(updated)
             st.success("✅ 제보가 등록되었습니다! (감사합니다 🙏)")
+
